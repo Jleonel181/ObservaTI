@@ -1,0 +1,26 @@
+# ============================================================
+# ObservaTI - Grafana Datasources Provisioning
+# ============================================================
+# Fase 1: CloudWatch como fuente principal de métricas AWS.
+# Las credenciales se inyectan vía variables de entorno o IAM Role.
+# ============================================================
+
+apiVersion: 1
+
+datasources:
+  # --- CloudWatch (métricas y logs AWS) ---
+  - name: CloudWatch
+    type: cloudwatch
+    access: proxy
+    uid: cloudwatch-main
+    isDefault: true
+    editable: false
+    jsonData:
+      authType: default
+      defaultRegion: ${AWS_DEFAULT_REGION}
+      customMetricsNamespaces: ""
+      # Regiones adicionales que se pueden consultar:
+      # assumeRoleArn: arn:aws:iam::ACCOUNT_ID:role/observati-grafana-role
+    secureJsonData:
+      accessKey: ${AWS_ACCESS_KEY_ID}
+      secretKey: ${AWS_SECRET_ACCESS_KEY}

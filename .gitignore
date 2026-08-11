@@ -1,0 +1,37 @@
+# Environment variables (contiene secretos)
+.env
+
+# Volúmenes Docker locales
+data/
+
+# Grafana local data
+grafana/data/
+
+# Uptime Kuma local data
+uptime-kuma/data/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs locales
+*.log
+
+# Backups locales (pueden contener datos sensibles)
+backups/
+*.tar.gz
+*.bak
+
+# Terraform
+terraform/.terraform/
+terraform/.terraform.lock.hcl
+terraform/terraform.tfstate
+terraform/terraform.tfstate.backup
+terraform/terraform.tfvars
+terraform/*.tfplan

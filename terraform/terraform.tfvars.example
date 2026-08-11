@@ -1,0 +1,42 @@
+# ============================================================
+# ObservaTI - Terraform Variables (EJEMPLO)
+# ============================================================
+# Copia este archivo como terraform.tfvars y completa los valores.
+# NUNCA subas terraform.tfvars al repositorio si tiene datos sensibles.
+# ============================================================
+
+# --- General ---
+project_name = "observati"
+environment  = "production"
+aws_region   = "us-east-1"
+
+# --- Networking (OBLIGATORIO: obtener de tu VPC existente) ---
+vpc_id    = "vpc-XXXXXXXXXXXXXXXXX"
+subnet_id = "subnet-XXXXXXXXXXXXXXXXX"
+
+# --- Acceso a la UI ---
+# IPs desde las cuales se puede acceder a Grafana y Uptime Kuma.
+# Usa tu IP pública actual: curl ifconfig.me
+# Formato CIDR: "1.2.3.4/32" para una IP exacta.
+allowed_cidr_blocks = [
+  # "TU_IP_PUBLICA/32",
+]
+
+# SSH (opcional, se recomienda usar SSM en su lugar)
+allowed_ssh_cidr_blocks = [
+  # "TU_IP_PUBLICA/32",
+]
+
+# --- EC2 ---
+instance_type = "t3.small" # Lab: t3.small | Prod: t3.medium
+volume_size   = 30          # GB (lab: 30, prod: 80)
+key_pair_name = ""          # Dejar vacío si se usa SSM Session Manager
+
+# --- IP Pública ---
+# true: acceso directo (si no hay VPN/bastion)
+# false: acceso solo desde red interna (requiere VPN, bastion, o SSM)
+associate_public_ip = true
+
+# --- Cross-Account (opcional) ---
+# Si se monitorean otras cuentas AWS, agregar sus IDs aquí:
+monitored_account_ids = []

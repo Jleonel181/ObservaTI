@@ -1,0 +1,45 @@
+# ============================================================
+# ObservaTI - Dashboard Provisioning
+# ============================================================
+# Grafana carga dashboards desde estos paths al iniciar.
+# Los dashboards se definen como JSON y se versionan en Git.
+# ============================================================
+
+apiVersion: 1
+
+providers:
+  - name: "Overview"
+    orgId: 1
+    folder: "Overview"
+    type: file
+    disableDeletion: false
+    editable: true
+    updateIntervalSeconds: 30
+    allowUiUpdates: true
+    options:
+      path: /etc/grafana/provisioning/dashboards/overview
+      foldersFromFilesStructure: false
+
+  - name: "AWS Infrastructure"
+    orgId: 1
+    folder: "AWS Infrastructure"
+    type: file
+    disableDeletion: false
+    editable: true
+    updateIntervalSeconds: 30
+    allowUiUpdates: true
+    options:
+      path: /etc/grafana/provisioning/dashboards/aws
+      foldersFromFilesStructure: false
+
+  - name: "Applications"
+    orgId: 1
+    folder: "Applications"
+    type: file
+    disableDeletion: false
+    editable: true
+    updateIntervalSeconds: 30
+    allowUiUpdates: true
+    options:
+      path: /etc/grafana/provisioning/dashboards/applications
+      foldersFromFilesStructure: false

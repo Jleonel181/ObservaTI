@@ -1,0 +1,75 @@
+# ============================================================
+# ObservaTI - Docker Compose (Fase 1 - MVP)
+# ============================================================
+# Componentes: Grafana OSS + Uptime Kuma
+# ============================================================
+
+services:
+  # --- Grafana OSS ---
+  grafana:
+    image: grafana/grafana-oss:11.1.0
+    container_name: observati-grafana
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GF_ADMIN_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GF_ADMIN_PASSWORD:-admin}
+      - GF_SERVER_ROOT_URL=${GF_SERVER_ROOT_URL:-http://localhost:3000}
+      - GF_SERVER_DOMAIN=${GF_SERVER_DOMAIN:-localhost}
+      - GF_SMTP_ENABLED=true
+      - GF_SMTP_HOST=${GF_SMTP_HOST:-smtp.zoho.com:587}
+      - GF_SMTP_USER=${GF_SMTP_USER}
+      - GF_SMTP_PASSWORD=${GF_SMTP_PASSWORD}
+      - GF_SMTP_FROM_ADDRESS=${GF_SMTP_FROM_ADDRESS}
+      - GF_SMTP_FROM_NAME=${GF_SMTP_FROM_NAME:-ObservaTI}
+      - GF_SMTP_STARTTLS_POLICY=MandatoryStartTLS
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-}
+      - AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION:-us-east-1}
+      - TZ=${TZ:-America/Guatemala}
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/grafana.ini:/etc/grafana/grafana.ini:ro
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+    networks:
+      - observati
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "--quiet", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  # --- Uptime Kuma ---
+  uptime-kuma:
+    image: louislam/uptime-kuma:1.23.15
+    container_name: observati-uptime-kuma
+    restart: unless-stopped
+    ports:
+      - "${UPTIME_KUMA_PORT:-3001}:3001"
+    environment:
+      - TZ=${TZ:-America/Guatemala}
+    volumes:
+      - uptime_kuma_data:/app/data
+    networks:
+      - observati
+    healthcheck:
+      test: ["CMD", "extra/healthcheck"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+# --- Volumes ---
+volumes:
+  grafana_data:
+    driver: local
+  uptime_kuma_data:
+    driver: local
+
+# --- Networks ---
+networks:
+  observati:
+    driver: bridge
+    name: observati-network

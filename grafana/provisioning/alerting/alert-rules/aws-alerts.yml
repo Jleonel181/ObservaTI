@@ -1,0 +1,439 @@
+# ============================================================
+# ObservaTI - Alert Rules: AWS Infrastructure
+# ============================================================
+# Alertas basadas en métricas de CloudWatch.
+# Evaluadas por Grafana Unified Alerting.
+# ============================================================
+
+apiVersion: 1
+
+groups:
+  - orgId: 1
+    name: AWS EC2
+    folder: AWS Infrastructure
+    interval: 5m
+    rules:
+      # --- EC2: CPU alta ---
+      - uid: ec2-cpu-warning
+        title: "EC2 CPU High"
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: cloudwatch-main
+            model:
+              dimensions: {}
+              metricName: CPUUtilization
+              namespace: AWS/EC2
+              period: "300"
+              queryMode: Metrics
+              refId: A
+              region: default
+              statistic: Average
+          - refId: B
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params: []
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - B
+                  reducer:
+                    params: []
+                    type: last
+              expression: A
+              reducer: last
+              refId: B
+              type: reduce
+          - refId: C
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 80
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - C
+                  reducer:
+                    params: []
+                    type: last
+              expression: B
+              refId: C
+              type: threshold
+        noDataState: NoData
+        execErrState: Error
+        for: 10m
+        annotations:
+          description: "CPU de instancia EC2 por encima del 80% durante 10 minutos."
+          summary: "EC2 CPU alta"
+        labels:
+          severity: warning
+          service_name: ec2
+          environment: production
+
+      # --- EC2: Status Check Failed ---
+      - uid: ec2-status-check-failed
+        title: "EC2 Status Check Failed"
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: cloudwatch-main
+            model:
+              dimensions: {}
+              metricName: StatusCheckFailed
+              namespace: AWS/EC2
+              period: "300"
+              queryMode: Metrics
+              refId: A
+              region: default
+              statistic: Maximum
+          - refId: B
+            datasourceUid: __expr__
+            model:
+              expression: A
+              reducer: last
+              refId: B
+              type: reduce
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 0
+                    type: gt
+              expression: B
+              refId: C
+              type: threshold
+        noDataState: NoData
+        execErrState: Error
+        for: 3m
+        annotations:
+          description: "Una instancia EC2 tiene status check fallido. Posible fallo de hardware o sistema operativo."
+          summary: "EC2 status check FAILED"
+        labels:
+          severity: critical
+          service_name: ec2
+          environment: production
+
+  - orgId: 1
+    name: AWS RDS
+    folder: AWS Infrastructure
+    interval: 5m
+    rules:
+      # --- RDS: CPU alta ---
+      - uid: rds-cpu-warning
+        title: "RDS CPU High"
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: cloudwatch-main
+            model:
+              dimensions: {}
+              metricName: CPUUtilization
+              namespace: AWS/RDS
+              period: "300"
+              queryMode: Metrics
+              refId: A
+              region: default
+              statistic: Average
+          - refId: B
+            datasourceUid: __expr__
+            model:
+              expression: A
+              reducer: last
+              refId: B
+              type: reduce
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 80
+                    type: gt
+              expression: B
+              refId: C
+              type: threshold
+        noDataState: NoData
+        execErrState: Error
+        for: 10m
+        annotations:
+          description: "CPU de RDS por encima del 80% durante 10 minutos. Posible saturación de base de datos."
+          summary: "RDS CPU alta"
+        labels:
+          severity: warning
+          service_name: rds
+          environment: production
+
+      # --- RDS: Conexiones altas ---
+      - uid: rds-connections-high
+        title: "RDS Connections High"
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: cloudwatch-main
+            model:
+              dimensions: {}
+              metricName: DatabaseConnections
+              namespace: AWS/RDS
+              period: "300"
+              queryMode: Metrics
+              refId: A
+              region: default
+              statistic: Average
+          - refId: B
+            datasourceUid: __expr__
+            model:
+              expression: A
+              reducer: last
+              refId: B
+              type: reduce
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 100
+                    type: gt
+              expression: B
+              refId: C
+              type: threshold
+        noDataState: NoData
+        execErrState: Error
+        for: 10m
+        annotations:
+          description: "RDS tiene más de 100 conexiones activas. Verificar si hay connection leaks o carga excesiva."
+          summary: "RDS conexiones altas"
+        labels:
+          severity: warning
+          service_name: rds
+          environment: production
+
+      # --- RDS: Espacio en disco bajo ---
+      - uid: rds-storage-low
+        title: "RDS Free Storage Low"
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: cloudwatch-main
+            model:
+              dimensions: {}
+              metricName: FreeStorageSpace
+              namespace: AWS/RDS
+              period: "300"
+              queryMode: Metrics
+              refId: A
+              region: default
+              statistic: Average
+          - refId: B
+            datasourceUid: __expr__
+            model:
+              expression: A
+              reducer: last
+              refId: B
+              type: reduce
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 5368709120
+                    type: lt
+              expression: B
+              refId: C
+              type: threshold
+        noDataState: NoData
+        execErrState: Error
+        for: 5m
+        annotations:
+          description: "RDS tiene menos de 5 GB de espacio libre. Riesgo de quedarse sin almacenamiento."
+          summary: "RDS almacenamiento bajo"
+        labels:
+          severity: critical
+          service_name: rds
+          environment: production
+
+  - orgId: 1
+    name: AWS Lambda
+    folder: AWS Infrastructure
+    interval: 5m
+    rules:
+      # --- Lambda: Errores ---
+      - uid: lambda-errors-warning
+        title: "Lambda Errors Detected"
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: cloudwatch-main
+            model:
+              dimensions: {}
+              metricName: Errors
+              namespace: AWS/Lambda
+              period: "300"
+              queryMode: Metrics
+              refId: A
+              region: default
+              statistic: Sum
+          - refId: B
+            datasourceUid: __expr__
+            model:
+              expression: A
+              reducer: last
+              refId: B
+              type: reduce
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 5
+                    type: gt
+              expression: B
+              refId: C
+              type: threshold
+        noDataState: NoData
+        execErrState: Error
+        for: 5m
+        annotations:
+          description: "Funciones Lambda con más de 5 errores en los últimos 10 minutos."
+          summary: "Lambda errores detectados"
+        labels:
+          severity: warning
+          service_name: lambda
+          environment: production
+
+      # --- Lambda: Throttles ---
+      - uid: lambda-throttles
+        title: "Lambda Throttled"
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: cloudwatch-main
+            model:
+              dimensions: {}
+              metricName: Throttles
+              namespace: AWS/Lambda
+              period: "300"
+              queryMode: Metrics
+              refId: A
+              region: default
+              statistic: Sum
+          - refId: B
+            datasourceUid: __expr__
+            model:
+              expression: A
+              reducer: last
+              refId: B
+              type: reduce
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 0
+                    type: gt
+              expression: B
+              refId: C
+              type: threshold
+        noDataState: NoData
+        execErrState: Error
+        for: 5m
+        annotations:
+          description: "Funciones Lambda están siendo throttled. Se está alcanzando el límite de concurrencia."
+          summary: "Lambda throttled"
+        labels:
+          severity: warning
+          service_name: lambda
+          environment: production
+
+  - orgId: 1
+    name: AWS API Gateway
+    folder: AWS Infrastructure
+    interval: 5m
+    rules:
+      # --- API Gateway: 5XX Errors ---
+      - uid: apigw-5xx-errors
+        title: "API Gateway 5XX Errors"
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: cloudwatch-main
+            model:
+              dimensions: {}
+              metricName: 5XXError
+              namespace: AWS/ApiGateway
+              period: "300"
+              queryMode: Metrics
+              refId: A
+              region: default
+              statistic: Sum
+          - refId: B
+            datasourceUid: __expr__
+            model:
+              expression: A
+              reducer: last
+              refId: B
+              type: reduce
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 10
+                    type: gt
+              expression: B
+              refId: C
+              type: threshold
+        noDataState: NoData
+        execErrState: Error
+        for: 3m
+        annotations:
+          description: "API Gateway reportando más de 10 errores 5XX. El backend tiene problemas."
+          summary: "API Gateway errores 5XX"
+        labels:
+          severity: critical
+          service_name: apigateway
+          environment: production

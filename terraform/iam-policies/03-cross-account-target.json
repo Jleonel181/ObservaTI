@@ -1,0 +1,63 @@
+{
+  "_comment": "Esta política se crea en OTRA cuenta AWS (la que se quiere monitorear). Permite que la cuenta de ObservaTI asuma este rol para leer CloudWatch. Reemplaza OBSERVATI_ACCOUNT_ID con el Account ID donde corre ObservaTI.",
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "TrustPolicy",
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": "arn:aws:iam::OBSERVATI_ACCOUNT_ID:role/observati-grafana-role"
+      },
+      "Action": "sts:AssumeRole"
+    }
+  ],
+  "_permissions_policy_comment": "Adjuntar la siguiente política de permisos al mismo rol:",
+  "_permissions_policy": {
+    "Version": "2012-10-17",
+    "Statement": [
+      {
+        "Sid": "CloudWatchMetricsReadOnly",
+        "Effect": "Allow",
+        "Action": [
+          "cloudwatch:DescribeAlarmsForMetric",
+          "cloudwatch:DescribeAlarmHistory",
+          "cloudwatch:DescribeAlarms",
+          "cloudwatch:ListMetrics",
+          "cloudwatch:GetMetricData",
+          "cloudwatch:GetMetricStatistics",
+          "cloudwatch:GetInsightRuleReport"
+        ],
+        "Resource": "*"
+      },
+      {
+        "Sid": "CloudWatchLogsReadOnly",
+        "Effect": "Allow",
+        "Action": [
+          "logs:DescribeLogGroups",
+          "logs:GetLogGroupFields",
+          "logs:StartQuery",
+          "logs:StopQuery",
+          "logs:GetQueryResults",
+          "logs:GetLogEvents"
+        ],
+        "Resource": "*"
+      },
+      {
+        "Sid": "EC2DescribeRegions",
+        "Effect": "Allow",
+        "Action": [
+          "ec2:DescribeRegions"
+        ],
+        "Resource": "*"
+      },
+      {
+        "Sid": "ResourceTagsReadOnly",
+        "Effect": "Allow",
+        "Action": [
+          "tag:GetResources"
+        ],
+        "Resource": "*"
+      }
+    ]
+  }
+}
