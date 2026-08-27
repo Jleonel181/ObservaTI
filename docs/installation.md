@@ -6,6 +6,7 @@
 |-----------|---------------|---------------|
 | Docker | 24.0+ | `docker --version` |
 | Docker Compose | 2.20+ (plugin) | `docker compose version` |
+| yq | 4.0+ | `yq --version` (instalar: `brew install yq`) |
 | Acceso a AWS | IAM con permisos CloudWatch | Ver sección IAM |
 | Conectividad | Puerto 443 saliente (CloudWatch API, Discord) | - |
 
@@ -117,42 +118,72 @@ Resultado esperado:
 
 ## 6. Configurar Uptime Kuma
 
-Uptime Kuma se configura vía UI en el primer acceso:
+### Primer acceso (solo una vez)
 
 1. Abrir http://<IP_SERVIDOR>:3001
-2. Crear usuario administrador.
-3. Agregar monitores para cada aplicación:
+2. Crear usuario administrador (recordar estas credenciales).
 
-### Ejemplo: Agregar RedApp Producción
+### Configurar monitores como código
 
-| Campo | Valor |
-|-------|-------|
-| Monitor Type | HTTP(s) |
-| Friendly Name | RedApp - Producción |
-| URL | https://redapp.tudominio.com |
-| Heartbeat Interval | 60 seconds |
-| Retries | 3 |
-| Accepted Status Codes | 200-299 |
+Los monitores se definen en `uptime-kuma/monitors.yml`:
 
-### Ejemplo: Agregar WebApp Test
+```yaml
+defaults:
+  interval: 60
+  retryInterval: 30
+  maxretries: 3
+  timeout: 10
+  headers:
+    # User-Agent de navegador real (necesario para sitios con WAF/CDN)
+    User-Agent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 ..."
 
-| Campo | Valor |
-|-------|-------|
-| Monitor Type | HTTP(s) |
-| Friendly Name | WebApp - Test |
-| URL | https://test.webapp.tudominio.com |
-| Heartbeat Interval | 120 seconds |
-| Retries | 3 |
-| Accepted Status Codes | 200-299 |
+monitors:
+  - name: "RedApp - Producción"
+    type: http
+    url: "https://redapp.tudominio.com"
+    interval: 60
+
+  - name: "Sitio Corporativo - Producción"
+    type: http
+    url: "https://www.tudominio.com"
+    interval: 60
+```
+
+Editar las URLs con los valores reales y ejecutar:
+
+```bash
+make setup-monitors
+```
+
+El script solicita las credenciales de Uptime Kuma y crea todos los monitores automáticamente.
+
+**Nota importante sobre User-Agent:**
+Sitios protegidos por WAF (AWS WAF, Cloudflare, etc.) devuelven HTTP 403 si el request no incluye un User-Agent de navegador real. El campo `defaults.headers.User-Agent` resuelve esto enviando un User-Agent de Chrome en cada check.
+
+### Agregar una nueva aplicación
+
+1. Agregar entrada en `uptime-kuma/monitors.yml`
+2. Ejecutar `make setup-monitors` (solo crea los nuevos, no duplica)
+
+### Recrear todos los monitores
+
+Si cambias URLs o headers y necesitas aplicar los cambios:
+
+```bash
+make reset-monitors
+```
+
+Esto elimina todos los monitores existentes y los recrea desde el YAML.
 
 ### Configurar notificaciones en Uptime Kuma
 
-1. Settings → Notifications → Setup Notification.
-2. **Discord:**
+Esto se configura vía UI (Settings → Notifications):
+
+1. **Discord:**
    - Notification Type: Discord
    - Webhook URL: (misma URL del .env)
    - Habilitar para Up & Down.
-3. **Email (Zoho):**
+2. **Email (Zoho):**
    - Notification Type: SMTP
    - Host: smtp.zoho.com
    - Port: 587
@@ -164,18 +195,22 @@ Uptime Kuma se configura vía UI en el primer acceso:
 
 ### Monitores sugeridos iniciales
 
-| Aplicación | Tipo | URL/Host | Intervalo |
-|------------|------|----------|-----------|
-| RedApp Prod | HTTP(s) | https://redapp.tudominio.com | 60s |
-| RedApp Test | HTTP(s) | https://test.redapp.tudominio.com | 120s |
-| WebApp Prod | HTTP(s) | https://webapp.tudominio.com | 60s |
-| WebApp Test | HTTP(s) | https://test.webapp.tudominio.com | 120s |
-| Sitio Corporativo Prod | HTTP(s) | https://www.tudominio.com | 60s |
-| Sitio Corporativo Test | HTTP(s) | https://test.tudominio.com | 120s |
-| Intranet | HTTP(s) | https://intranet.tudominio.com | 60s |
-| SSL RedApp | HTTP(s) - Certificate | https://redapp.tudominio.com | 86400s (diario) |
-| SSL WebApp | HTTP(s) - Certificate | https://webapp.tudominio.com | 86400s (diario) |
-| SSL Sitio Corporativo | HTTP(s) - Certificate | https://www.tudominio.com | 86400s (diario) |
+Los monitores se definen en `uptime-kuma/monitors.yml`. La configuración inicial incluye:
+
+| Aplicación | Tipo | Intervalo |
+|------------|------|-----------|
+| RedApp Prod | HTTP(s) | 60s |
+| RedApp Test | HTTP(s) | 120s |
+| WebApp Prod | HTTP(s) | 60s |
+| WebApp Test | HTTP(s) | 120s |
+| Sitio Corporativo Prod | HTTP(s) | 60s |
+| Sitio Corporativo Test | HTTP(s) | 120s |
+| Intranet | HTTP(s) | 60s |
+| SSL RedApp | HTTP(s) - Certificate | 86400s (diario) |
+| SSL WebApp | HTTP(s) - Certificate | 86400s (diario) |
+| SSL Sitio Corporativo | HTTP(s) - Certificate | 86400s (diario) |
+
+Editar las URLs en el archivo y ejecutar `make setup-monitors`.
 
 ## 7. Verificar CloudWatch en Grafana
 
@@ -264,6 +299,30 @@ Verificar que el IAM user/role tenga esta política adjunta:
 3. Verificar que la cuenta Zoho tenga SMTP habilitado.
 4. Probar: `make logs-grafana` y buscar errores SMTP.
 
+### Uptime Kuma marca sitio como DOWN (HTTP 403)
+
+Sitios con WAF/CDN (Cloudflare, AWS WAF, Akamai) bloquean requests sin User-Agent de navegador real.
+
+**Solución:** Verificar que `uptime-kuma/monitors.yml` tenga en defaults:
+
+```yaml
+defaults:
+  headers:
+    User-Agent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+```
+
+Luego recrear monitores: `make reset-monitors`
+
+### setup-monitors falla con "Login fallido"
+
+Las credenciales de Uptime Kuma son las que creaste en la UI (http://localhost:3001) al primer acceso. No son las de Grafana ni las del `.env`.
+
+Puedes pasarlas como variables de entorno para evitar el prompt:
+
+```bash
+KUMA_USER=admin KUMA_PASS=tu_password make setup-monitors
+```
+
 ---
 
 ## Operaciones comunes
@@ -274,7 +333,51 @@ Verificar que el IAM user/role tenga esta política adjunta:
 | Detener | `make down` |
 | Ver estado | `make status` |
 | Ver logs | `make logs` |
+| Configurar monitores | `make setup-monitors` |
+| Resetear monitores | `make reset-monitors` |
 | Backup | `make backup` |
 | Reiniciar tras cambio de config | `make rebuild` |
 | Validar compose | `make validate` |
 | Verificar .env | `make env-check` |
+
+---
+
+## CI/CD Pipeline
+
+El repositorio incluye un pipeline de GitHub Actions que valida automáticamente cada cambio.
+
+### ¿Qué se ejecuta?
+
+En cada **push a develop/main**:
+- Valida `docker-compose.yml`
+- Valida JSONs de dashboards y YAMLs de alerting
+- Valida `monitors.yml` (campos requeridos)
+- Valida Terraform (`fmt`, `init`, `validate`)
+- Levanta el stack completo y verifica que Grafana arranque con dashboards y alertas
+
+En cada **PR a main** (si se configuran secrets AWS):
+- Ejecuta `terraform plan` y postea el resultado como comentario en el PR
+
+### Configurar secrets para terraform plan (opcional)
+
+En GitHub: Settings → Secrets and variables → Actions → New repository secret:
+
+| Secret | Valor |
+|--------|-------|
+| `AWS_ACCESS_KEY_ID` | Access Key del operador de Terraform |
+| `AWS_SECRET_ACCESS_KEY` | Secret Key correspondiente |
+
+Sin estos secrets, el pipeline pasa igualmente — solo omite el paso de `terraform plan`.
+
+### Validar localmente antes de push
+
+```bash
+# Validar compose
+make validate
+
+# Validar Terraform
+cd terraform && terraform fmt -check && terraform init -backend=false && terraform validate
+
+# Verificar que el stack arranca
+make up && make health
+```

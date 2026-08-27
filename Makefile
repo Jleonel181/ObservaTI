@@ -67,6 +67,14 @@ logs-uptime: ## Muestra logs de Uptime Kuma (follow)
 	$(COMPOSE) logs -f uptime-kuma
 
 # --- Backup ---
+# --- Setup ---
+setup-monitors: ## Configura monitores de Uptime Kuma desde uptime-kuma/monitors.yml
+	@./scripts/setup-monitors.sh
+
+reset-monitors: ## Elimina TODOS los monitores de Uptime Kuma y los recrea desde código
+	@RESET_MONITORS=1 ./scripts/setup-monitors.sh
+
+# --- Backup ---
 backup: ## Crea backup de configuración y volúmenes
 	@mkdir -p $(BACKUP_DIR)
 	@echo "  Creando backup..."

@@ -1,0 +1,81 @@
+# ============================================================
+# ObservaTI - Monitores de Uptime Kuma
+# ============================================================
+# Define aquí las aplicaciones a monitorear.
+# Ejecutar: make setup-monitors
+# ============================================================
+
+# Configuración global
+defaults:
+  interval: 60           # segundos entre checks
+  retryInterval: 30      # segundos antes de reintentar
+  maxretries: 3          # reintentos antes de marcar DOWN
+  timeout: 10            # timeout del request en segundos
+  headers:               # headers por defecto para todos los monitores HTTP
+    User-Agent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+
+# Aplicaciones a monitorear
+monitors:
+  # --- RedApp ---
+  - name: "RedApp - Producción"
+    type: http
+    url: "https://coberturas.nuestrodiario.net/"
+    interval: 60
+    tags:
+      - name: produccion
+        color: "#dc3545"
+      - name: redapp
+        color: "#0d6efd"
+
+  - name: "RedApp - Test"
+    type: http
+    url: "https://coberturas-dev.nuestrodiario.net"
+    interval: 120
+    tags:
+      - name: test
+        color: "#ffc107"
+      - name: redapp
+        color: "#0d6efd"
+
+  # --- WebApp ---
+  - name: "WebApp - Producción"
+    type: http
+    url: "https://www.nuestrodiario.com"
+    interval: 60
+    tags:
+      - name: produccion
+        color: "#dc3545"
+      - name: webapp
+        color: "#198754"
+
+  - name: "WebApp - Test"
+    type: http
+    url: "https://dev.noticias.nuestrodiario.com.gt/"
+    interval: 120
+    tags:
+      - name: test
+        color: "#ffc107"
+      - name: webapp
+        color: "#198754"
+
+  # --- Sitio Corporativo ---
+  - name: "Sitio Corporativo - Producción"
+    type: http
+    url: "https://www.nuestrodiario.com"
+    interval: 60
+    tags:
+      - name: produccion
+        color: "#dc3545"
+      - name: corporativo
+        color: "#6f42c1"
+
+  # --- Intranet ---
+  - name: "Intranet"
+    type: http
+    url: "https://intranet.nuestrodiario.com.gt/"
+    interval: 60
+    tags:
+      - name: produccion
+        color: "#dc3545"
+      - name: intranet
+        color: "#fd7e14"

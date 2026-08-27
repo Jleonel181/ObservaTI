@@ -1,8 +1,11 @@
 # ============================================================
 # ObservaTI - Contact Points (Canales de Notificación)
 # ============================================================
-# Discord: canal primario de alertas.
-# Email (Zoho Mail): canal secundario.
+# Discord y Email configurados como código.
+#
+# IMPORTANTE: Grafana provisioning NO interpola env vars en
+# secureSettings. Los valores se pasan vía environment del
+# container usando la sintaxis $__env{VARIABLE}.
 # ============================================================
 
 apiVersion: 1
@@ -14,22 +17,21 @@ contactPoints:
       - uid: discord-webhook
         type: discord
         settings:
-          url: ${DISCORD_WEBHOOK_URL}
+          url: $__env{DISCORD_WEBHOOK_URL}
           use_discord_username: true
+          avatar_url: ""
           message: |
             **{{ .Status | toUpper }}** {{ if eq .Status "firing" }}🔴{{ else }}🟢{{ end }}
 
             **Alerta:** {{ .CommonLabels.alertname }}
             **Severidad:** {{ .CommonLabels.severity }}
-            **Ambiente:** {{ .CommonLabels.environment | default "production" }}
+            **Ambiente:** {{ .CommonLabels.environment }}
 
             {{ range .Alerts }}
             > **{{ .Labels.alertname }}**
-            > Servicio: {{ .Labels.service_name | default "N/A" }}
-            > Región: {{ .Labels.region | default "us-east-1" }}
+            > Servicio: {{ .Labels.service_name }}
             > Detalle: {{ .Annotations.description }}
             > Inicio: {{ .StartsAt.Format "2006-01-02 15:04:05" }}
-            {{ if .EndsAt }}> Fin: {{ .EndsAt.Format "2006-01-02 15:04:05" }}{{ end }}
             {{ end }}
         disableResolveMessage: false
 
@@ -39,15 +41,6 @@ contactPoints:
       - uid: zoho-email
         type: email
         settings:
-          addresses: ${GF_SMTP_FROM_ADDRESS}
+          addresses: $__env{GF_ALERT_EMAIL_ADDRESSES}
           singleEmail: true
-          message: |
-            Alerta: {{ .CommonLabels.alertname }}
-            Severidad: {{ .CommonLabels.severity }}
-            Estado: {{ .Status }}
-
-            {{ range .Alerts }}
-            - {{ .Labels.alertname }}: {{ .Annotations.description }}
-              Inicio: {{ .StartsAt.Format "2006-01-02 15:04:05" }}
-            {{ end }}
         disableResolveMessage: false
