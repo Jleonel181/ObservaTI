@@ -1,9 +1,9 @@
 # ============================================================
 # ObservaTI - Notification Policies (Routing de Alertas)
 # ============================================================
-# Política: todas las alertas van a Discord.
-# Las CRITICAL también van a email.
-# Agrupación por servicio y ambiente para reducir ruido.
+# CRITICAL → Discord + Email
+# WARNING  → Discord
+# INFO     → Discord (baja frecuencia)
 # ============================================================
 
 apiVersion: 1
@@ -19,7 +19,6 @@ policies:
     group_interval: 5m
     repeat_interval: 4h
     routes:
-      # Alertas CRITICAL: Discord + Email
       - receiver: email-alerts
         matchers:
           - severity = critical
@@ -28,26 +27,3 @@ policies:
         repeat_interval: 2h
         continue: true
 
-      # Alertas CRITICAL también van a Discord (continue: true arriba lo permite)
-      - receiver: discord-alerts
-        matchers:
-          - severity = critical
-        group_wait: 10s
-        group_interval: 3m
-        repeat_interval: 2h
-
-      # Alertas WARNING: solo Discord
-      - receiver: discord-alerts
-        matchers:
-          - severity = warning
-        group_wait: 30s
-        group_interval: 5m
-        repeat_interval: 4h
-
-      # Alertas INFO: solo Discord, con menor frecuencia
-      - receiver: discord-alerts
-        matchers:
-          - severity = info
-        group_wait: 60s
-        group_interval: 15m
-        repeat_interval: 12h

@@ -45,6 +45,10 @@ make up
 
 # 3. Verificar
 make health
+
+# 4. Configurar monitores de Uptime Kuma (requiere yq: brew install yq)
+#    Editar uptime-kuma/monitors.yml con las URLs reales
+make setup-monitors
 ```
 
 ## Acceso
@@ -58,9 +62,10 @@ make health
 
 - Docker 24.0+
 - Docker Compose v2
+- yq (`brew install yq`) — para gestionar monitores como código
 - Credenciales AWS con permisos CloudWatch (lectura)
-- Webhook de Discord
-- Cuenta Zoho Mail con App Password
+- Webhook de Discord (opcional para alertas)
+- Cuenta Zoho Mail con App Password (opcional para alertas por correo)
 
 ## Estructura del proyecto
 
@@ -79,7 +84,10 @@ observati/
 │       ├── datasources/          → CloudWatch
 │       └── alerting/             → Contact points, policies, rules
 ├── uptime-kuma/
+│   └── monitors.yml              → Monitores como código
 ├── scripts/
+│   └── setup-monitors.sh         → Provisiona monitores vía Socket.IO
+├── terraform/                    → IaC para infraestructura AWS
 └── docs/
     ├── architecture.md           → Diseño detallado y decisiones
     └── installation.md           → Guía paso a paso
@@ -88,17 +96,45 @@ observati/
 ## Comandos útiles
 
 ```bash
-make help          # Ver todos los comandos disponibles
-make up            # Iniciar servicios
-make down          # Detener servicios
-make status        # Ver estado de contenedores
-make health        # Verificar salud de servicios
-make logs          # Ver logs recientes
-make backup        # Crear backup de configuración
-make rebuild       # Recrear servicios (tras cambios de config)
-make validate      # Validar docker-compose.yml
-make env-check     # Verificar variables de entorno
+make help              # Ver todos los comandos disponibles
+make up                # Iniciar servicios
+make down              # Detener servicios
+make status            # Ver estado de contenedores
+make health            # Verificar salud de servicios
+make logs              # Ver logs recientes
+make setup-monitors    # Crear monitores en Uptime Kuma desde monitors.yml
+make reset-monitors    # Eliminar monitores existentes y recrear desde código
+make backup            # Crear backup de configuración
+make rebuild           # Recrear servicios (tras cambios de config)
+make validate          # Validar docker-compose.yml
+make env-check         # Verificar variables de entorno
 ```
+
+## Gestión de monitores como código
+
+Los monitores de Uptime Kuma se definen en `uptime-kuma/monitors.yml`:
+
+```yaml
+defaults:
+  interval: 60
+  headers:
+    User-Agent: "Mozilla/5.0 (Macintosh; ...) Chrome/120.0.0.0 Safari/537.36"
+
+monitors:
+  - name: "Mi App - Producción"
+    type: http
+    url: "https://miapp.com"
+    interval: 60
+```
+
+Para agregar una nueva aplicación, agrega una entrada al YAML y ejecuta:
+
+```bash
+make setup-monitors    # Crea solo los nuevos (no duplica existentes)
+make reset-monitors    # Borra todos y recrea desde cero
+```
+
+> **Nota:** Sitios con WAF/CDN (Cloudflare, AWS WAF) pueden bloquear requests sin User-Agent de navegador. El header por defecto en `defaults.headers` soluciona esto.
 
 ## Roadmap
 
@@ -114,3 +150,32 @@ make env-check     # Verificar variables de entorno
 
 - [Arquitectura detallada](docs/architecture.md)
 - [Guía de instalación](docs/installation.md)
+
+## CI/CD Pipeline
+
+El repositorio incluye un pipeline de GitHub Actions (`.github/workflows/validate.yml`) que se ejecuta automáticamente en cada push y PR.
+
+### En push a develop/main:
+
+| Validación | Qué verifica |
+|------------|-------------|
+| Docker Compose | Sintaxis correcta, archivos referenciados existen |
+| Grafana Provisioning | YAMLs de alerting y JSONs de dashboards válidos |
+| Monitors Config | Cada monitor tiene name, url y type |
+| Terraform | Formato HCL, init, validate |
+| Integration Test | Levanta el stack, verifica Grafana + Uptime Kuma + dashboards + alertas |
+
+### En PR a main (requiere GitHub Secrets de AWS):
+
+| Validación | Qué verifica |
+|------------|-------------|
+| Terraform Plan | Muestra qué recursos se crearían en AWS (sin crear nada) |
+
+### Configurar GitHub Secrets (opcional, para terraform plan):
+
+Settings → Secrets and variables → Actions:
+
+| Secret | Valor |
+|--------|-------|
+| `AWS_ACCESS_KEY_ID` | Access Key con permisos de lectura |
+| `AWS_SECRET_ACCESS_KEY` | Secret Key correspondiente |
