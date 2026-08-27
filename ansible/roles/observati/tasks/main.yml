@@ -1,0 +1,99 @@
+# ============================================================
+# ObservaTI - Role Tasks
+# ============================================================
+
+- name: Wait for cloud-init to finish (first boot)
+  command: cloud-init status --wait
+  changed_when: false
+  timeout: 300
+  tags: [setup]
+
+- name: Verify Docker is installed
+  command: docker --version
+  register: docker_version
+  changed_when: false
+  tags: [setup]
+
+- name: Display Docker version
+  debug:
+    msg: "{{ docker_version.stdout }}"
+  tags: [setup]
+
+- name: Verify Docker Compose is installed
+  command: docker compose version
+  register: compose_version
+  changed_when: false
+  tags: [setup]
+
+- name: Create project directory
+  file:
+    path: "{{ project_dir }}"
+    state: directory
+    owner: observati
+    group: observati
+    mode: "0755"
+  tags: [setup]
+
+- name: Clone/update repository
+  become_user: observati
+  git:
+    repo: "{{ project_repo }}"
+    dest: "{{ project_dir }}"
+    version: "{{ project_branch }}"
+    force: true
+  tags: [deploy]
+
+- name: Generate .env file
+  become_user: observati
+  template:
+    src: env.j2
+    dest: "{{ project_dir }}/.env"
+    owner: observati
+    group: observati
+    mode: "0600"
+  notify: restart observati
+  tags: [deploy, config]
+
+- name: Pull Docker images
+  become_user: observati
+  command: docker compose pull
+  args:
+    chdir: "{{ project_dir }}"
+  changed_when: true
+  tags: [deploy]
+
+- name: Start services
+  become_user: observati
+  command: docker compose up -d
+  args:
+    chdir: "{{ project_dir }}"
+  changed_when: true
+  tags: [deploy]
+
+- name: Wait for Grafana to be healthy
+  uri:
+    url: "http://localhost:3000/api/health"
+    status_code: 200
+  register: grafana_health
+  retries: 15
+  delay: 5
+  until: grafana_health.status == 200
+  tags: [deploy, verify]
+
+- name: Wait for Uptime Kuma to be healthy
+  uri:
+    url: "http://localhost:3001"
+    status_code: 200
+  register: kuma_health
+  retries: 15
+  delay: 5
+  until: kuma_health.status == 200
+  tags: [deploy, verify]
+
+- name: Display service status
+  debug:
+    msg: |
+      ✓ ObservaTI deployed successfully
+      ✓ Grafana:     http://{{ ansible_host }}:3000
+      ✓ Uptime Kuma: http://{{ ansible_host }}:3001
+  tags: [deploy, verify]

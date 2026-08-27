@@ -1,0 +1,38 @@
+# ============================================================
+# ObservaTI - Playbook Principal
+# ============================================================
+# Despliega la plataforma de observabilidad completa.
+#
+# Uso:
+#   ansible-playbook playbook.yml
+#   ansible-playbook playbook.yml --extra-vars "@secrets.yml"
+#   ansible-playbook playbook.yml --tags deploy
+# ============================================================
+
+- name: Deploy ObservaTI
+  hosts: observati
+  become: true
+
+  vars_prompt:
+    - name: grafana_admin_password
+      prompt: "Grafana admin password"
+      private: true
+      default: ""
+
+    - name: discord_webhook_url
+      prompt: "Discord Webhook URL (dejar vacío para omitir)"
+      private: false
+      default: ""
+
+    - name: smtp_user
+      prompt: "SMTP user (Zoho Mail, dejar vacío para omitir)"
+      private: false
+      default: ""
+
+    - name: smtp_password
+      prompt: "SMTP password"
+      private: true
+      default: ""
+
+  roles:
+    - observati

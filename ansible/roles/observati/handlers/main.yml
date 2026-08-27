@@ -1,0 +1,9 @@
+# ============================================================
+# ObservaTI - Handlers
+# ============================================================
+
+- name: restart observati
+  become_user: observati
+  command: docker compose up -d --force-recreate
+  args:
+    chdir: "{{ project_dir }}"

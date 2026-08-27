@@ -1,0 +1,35 @@
+# ============================================================
+# ObservaTI - Variables de grupo para Ansible
+# ============================================================
+# Variables comunes para el servidor de observabilidad.
+# Los secretos se pasan vía --extra-vars o ansible-vault.
+# ============================================================
+
+# --- Proyecto ---
+project_name: observati
+project_dir: /opt/observati
+project_repo: "https://github.com/Jleonel181/ObservaTI.git"
+project_branch: main
+
+# --- Grafana ---
+grafana_admin_user: admin
+# grafana_admin_password: se pasa como extra-var o vault
+
+# --- AWS ---
+aws_default_region: us-east-1
+# aws_access_key_id: no necesario si se usa IAM Role
+# aws_secret_access_key: no necesario si se usa IAM Role
+
+# --- SMTP (Zoho Mail) ---
+smtp_host: "smtp.zoho.com:587"
+# smtp_user: se pasa como extra-var o vault
+# smtp_password: se pasa como extra-var o vault
+# smtp_from_address: se pasa como extra-var o vault
+smtp_from_name: ObservaTI
+
+# --- Discord ---
+# discord_webhook_url: se pasa como extra-var o vault
+
+# --- General ---
+timezone: America/Guatemala
+uptime_kuma_port: 3001
