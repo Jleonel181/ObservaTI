@@ -87,7 +87,15 @@ observati/
 │   └── monitors.yml              → Monitores como código
 ├── scripts/
 │   └── setup-monitors.sh         → Provisiona monitores vía Socket.IO
-├── terraform/                    → IaC para infraestructura AWS
+├── ansible/                      → Despliegue automatizado (IaC)
+│   ├── playbook.yml              → Playbook principal
+│   ├── inventory.ini.example     → Template de inventario
+│   ├── ansible.cfg               → Configuración Ansible
+│   ├── group_vars/               → Variables por grupo
+│   └── roles/observati/          → Role de despliegue
+├── terraform/                    → Infraestructura AWS (IaC)
+│   ├── ec2.tf, iam.tf, etc.     → Recursos AWS
+│   └── terraform.tfvars.example  → Template de variables
 └── docs/
     ├── architecture.md           → Diseño detallado y decisiones
     └── installation.md           → Guía paso a paso
@@ -146,10 +154,28 @@ make reset-monitors    # Borra todos y recrea desde cero
 | 4 - Trazas | Tempo, OTel tracing | Pendiente |
 | 5 - Avanzada | SLIs/SLOs, correlación, dashboards ejecutivos | Pendiente |
 
+## Despliegue a AWS
+
+El flujo completo de despliegue es:
+
+```bash
+# 1. Crear infraestructura (EC2, IAM, Security Group)
+cd terraform
+terraform apply
+
+# 2. Desplegar la plataforma (clone repo, docker compose up)
+cd ../ansible
+cp inventory.ini.example inventory.ini
+# Editar inventory.ini con la IP del output de Terraform
+ansible-playbook playbook.yml
+```
+
 ## Documentación
 
 - [Arquitectura detallada](docs/architecture.md)
 - [Guía de instalación](docs/installation.md)
+- [Despliegue con Ansible](ansible/README.md)
+- [Infraestructura con Terraform](terraform/README.md)
 
 ## CI/CD Pipeline
 

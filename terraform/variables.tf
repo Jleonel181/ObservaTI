@@ -54,7 +54,7 @@ variable "instance_type" {
 variable "volume_size" {
   description = "Tamaño del volumen EBS raíz en GB"
   type        = number
-  default     = 30
+  default     = 50
 }
 
 variable "volume_type" {
@@ -81,4 +81,11 @@ variable "monitored_account_ids" {
   description = "IDs de cuentas AWS adicionales a monitorear (cross-account). Dejar vacío si es una sola cuenta."
   type        = list(string)
   default     = []
+}
+
+# --- Tags ---
+variable "team" {
+  description = "Equipo responsable del recurso"
+  type        = string
+  default     = "devops"
 }

@@ -6,12 +6,20 @@
 # ============================================================
 
 resource "aws_security_group" "observati" {
-  name        = "${var.project_name}-server-sg"
+  name        = "nd.vpc.sg.observati"
   description = "Security Group para servidor ObservaTI (Grafana + Uptime Kuma)"
   vpc_id      = var.vpc_id
 
   tags = {
-    Name = "${var.project_name}-server-sg"
+    Name        = "nd.vpc.sg.observati"
+    Team        = var.team
+    Service     = "observability"
+    CentroCosto = "CC-420099"
+    Prioridad   = "Baja"
+    Area        = "TI"
+    Ambiente    = "Produccion"
+    Propietario = "Leonel Lopez"
+    Cliente     = "Interno"
   }
 }
 
