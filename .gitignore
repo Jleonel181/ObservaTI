@@ -34,3 +34,8 @@ terraform/terraform.tfstate
 terraform/terraform.tfstate.backup
 terraform/terraform.tfvars
 terraform/*.tfplan
+*.pem
+
+# Ansible
+ansible/inventory.ini
+ansible/*.retry

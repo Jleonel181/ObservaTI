@@ -125,6 +125,58 @@ jobs:
           echo "✓ Todos los monitores tienen campos requeridos"
 
   # ─────────────────────────────────────────────────────────
+  # 3b. Validar Ansible
+  # ─────────────────────────────────────────────────────────
+  validate-ansible:
+    name: Validate Ansible
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Ansible
+        run: pip install ansible ansible-lint
+
+      - name: Ansible Lint
+        working-directory: ansible
+        run: ansible-lint playbook.yml || true
+
+      - name: Ansible Syntax Check
+        working-directory: ansible
+        run: |
+          cp inventory.ini.example inventory.ini
+          sed -i 's/CAMBIAR_POR_IP_PUBLICA/127.0.0.1/' inventory.ini
+          ansible-playbook playbook.yml --syntax-check \
+            -e "grafana_admin_password=test" \
+            -e "discord_webhook_url=https://example.com" \
+            -e "smtp_user=test@test.com" \
+            -e "smtp_password=test"
+
+      - name: Verify Jinja2 template renders
+        working-directory: ansible
+        run: |
+          python3 -c "
+          from jinja2 import Environment, FileSystemLoader
+          env = Environment(loader=FileSystemLoader('roles/observati/templates'))
+          template = env.get_template('env.j2')
+          result = template.render(
+              grafana_admin_user='admin',
+              grafana_admin_password='test',
+              ansible_host='1.2.3.4',
+              aws_default_region='us-east-1',
+              smtp_host='smtp.zoho.com:587',
+              smtp_user='test@test.com',
+              smtp_password='test',
+              smtp_from_name='ObservaTI',
+              discord_webhook_url='https://example.com',
+              uptime_kuma_port=3001,
+              timezone='America/Guatemala'
+          )
+          assert 'GF_ADMIN_PASSWORD=test' in result
+          assert 'DISCORD_WEBHOOK_URL=https://example.com' in result
+          print('✓ Template renders correctly')
+          "
+
+  # ─────────────────────────────────────────────────────────
   # 4. Validar Terraform (sin credenciales)
   # ─────────────────────────────────────────────────────────
   validate-terraform:
