@@ -1,0 +1,9 @@
+# ============================================================
+# ObservaTI - Ansible Inventory
+# ============================================================
+# Copia como inventory.ini y completa con la IP real del servidor.
+# NUNCA subas inventory.ini al repositorio.
+# ============================================================
+
+[observati]
+observati-server ansible_host=CAMBIAR_POR_IP_PUBLICA ansible_user=ubuntu ansible_ssh_private_key_file=~/.ssh/observati-key.pem
