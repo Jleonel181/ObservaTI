@@ -74,6 +74,9 @@ setup-monitors: ## Configura monitores de Uptime Kuma desde uptime-kuma/monitors
 reset-monitors: ## Elimina TODOS los monitores de Uptime Kuma y los recrea desde código
 	@RESET_MONITORS=1 ./scripts/setup-monitors.sh
 
+sync-ec2-names: ## Sincroniza nombres (tag Name) de instancias EC2 en los dashboards
+	@./scripts/sync-ec2-names.sh
+
 # --- Backup ---
 backup: ## Crea backup de configuración y volúmenes
 	@mkdir -p $(BACKUP_DIR)
