@@ -60,15 +60,15 @@ resource "aws_instance" "observati" {
   }
 
   tags = {
-    Name   = "${var.project_name}-server"
-    Team   = var.team
-    Service = "observability"
+    Name        = "${var.project_name}-server"
+    Team        = var.team
+    Service     = "observability"
     CentroCosto = "CC-420099"
-    Prioridad = "Baja"
-    Area = "TI"
-    Ambiente = "Produccion"
+    Prioridad   = "Baja"
+    Area        = "TI"
+    Ambiente    = "Produccion"
     Propietario = "Leonel Lopez"
-    Cliente = "Interno"
+    Cliente     = "Interno"
   }
 
   lifecycle {
