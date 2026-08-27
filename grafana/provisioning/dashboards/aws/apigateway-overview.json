@@ -1,203 +1,393 @@
 {
-  "annotations": { "list": [] },
-  "description": "Métricas de API Gateway vía CloudWatch",
+  "annotations": {
+    "list": []
+  },
+  "description": "Metricas de API Gateway via CloudWatch. Nota: CloudWatch no publica datapoints cuando la API no recibe trafico; un panel vacio significa cero requests en el rango, no un fallo.",
   "editable": true,
   "graphTooltip": 1,
   "id": null,
   "links": [],
   "panels": [
     {
-      "datasource": { "type": "cloudwatch", "uid": "cloudwatch-main" },
+      "datasource": {
+        "type": "cloudwatch",
+        "uid": "cloudwatch-main"
+      },
       "fieldConfig": {
         "defaults": {
-          "color": { "mode": "palette-classic" },
-          "custom": { "fillOpacity": 10, "lineWidth": 2 },
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "fillOpacity": 10,
+            "lineWidth": 2,
+            "spanNulls": true,
+            "showPoints": "always",
+            "pointSize": 5
+          },
           "unit": "short"
         }
       },
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 0
+      },
       "id": 1,
       "title": "Request Count",
       "type": "timeseries",
       "targets": [
         {
-          "datasource": { "type": "cloudwatch", "uid": "cloudwatch-main" },
-          "dimensions": { "ApiName": ["$api_name"] },
+          "datasource": {
+            "type": "cloudwatch",
+            "uid": "cloudwatch-main"
+          },
+          "dimensions": {
+            "ApiName": "${api_name}"
+          },
           "metricName": "Count",
           "namespace": "AWS/ApiGateway",
           "period": "300",
           "queryMode": "Metrics",
           "refId": "A",
           "region": "default",
-          "statistic": "Sum"
+          "statistic": "Sum",
+          "matchExact": true,
+          "metricQueryType": 0,
+          "metricEditorMode": 0,
+          "id": "",
+          "expression": "",
+          "alias": ""
         }
       ]
     },
     {
-      "datasource": { "type": "cloudwatch", "uid": "cloudwatch-main" },
+      "datasource": {
+        "type": "cloudwatch",
+        "uid": "cloudwatch-main"
+      },
       "fieldConfig": {
         "defaults": {
-          "color": { "mode": "palette-classic" },
-          "custom": { "fillOpacity": 10, "lineWidth": 2 },
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "fillOpacity": 10,
+            "lineWidth": 2,
+            "spanNulls": true,
+            "showPoints": "always",
+            "pointSize": 5
+          },
           "unit": "ms"
         }
       },
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 0
+      },
       "id": 2,
       "title": "Latency (p50 / p90 / p99)",
       "type": "timeseries",
       "targets": [
         {
-          "datasource": { "type": "cloudwatch", "uid": "cloudwatch-main" },
-          "dimensions": { "ApiName": ["$api_name"] },
+          "datasource": {
+            "type": "cloudwatch",
+            "uid": "cloudwatch-main"
+          },
+          "dimensions": {
+            "ApiName": "${api_name}"
+          },
           "metricName": "Latency",
           "namespace": "AWS/ApiGateway",
           "period": "300",
           "queryMode": "Metrics",
           "refId": "A",
           "region": "default",
-          "statistic": "p50"
+          "statistic": "p50",
+          "matchExact": true,
+          "metricQueryType": 0,
+          "metricEditorMode": 0,
+          "id": "",
+          "expression": "",
+          "alias": ""
         },
         {
-          "datasource": { "type": "cloudwatch", "uid": "cloudwatch-main" },
-          "dimensions": { "ApiName": ["$api_name"] },
+          "datasource": {
+            "type": "cloudwatch",
+            "uid": "cloudwatch-main"
+          },
+          "dimensions": {
+            "ApiName": "${api_name}"
+          },
           "metricName": "Latency",
           "namespace": "AWS/ApiGateway",
           "period": "300",
           "queryMode": "Metrics",
           "refId": "B",
           "region": "default",
-          "statistic": "p90"
+          "statistic": "p90",
+          "matchExact": true,
+          "metricQueryType": 0,
+          "metricEditorMode": 0,
+          "id": "",
+          "expression": "",
+          "alias": ""
         },
         {
-          "datasource": { "type": "cloudwatch", "uid": "cloudwatch-main" },
-          "dimensions": { "ApiName": ["$api_name"] },
+          "datasource": {
+            "type": "cloudwatch",
+            "uid": "cloudwatch-main"
+          },
+          "dimensions": {
+            "ApiName": "${api_name}"
+          },
           "metricName": "Latency",
           "namespace": "AWS/ApiGateway",
           "period": "300",
           "queryMode": "Metrics",
           "refId": "C",
           "region": "default",
-          "statistic": "p99"
+          "statistic": "p99",
+          "matchExact": true,
+          "metricQueryType": 0,
+          "metricEditorMode": 0,
+          "id": "",
+          "expression": "",
+          "alias": ""
         }
       ]
     },
     {
-      "datasource": { "type": "cloudwatch", "uid": "cloudwatch-main" },
+      "datasource": {
+        "type": "cloudwatch",
+        "uid": "cloudwatch-main"
+      },
       "fieldConfig": {
         "defaults": {
-          "color": { "mode": "palette-classic" },
-          "custom": { "fillOpacity": 10, "lineWidth": 2 },
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "fillOpacity": 10,
+            "lineWidth": 2,
+            "spanNulls": true,
+            "showPoints": "always",
+            "pointSize": 5
+          },
           "unit": "short",
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "green", "value": null },
-              { "color": "yellow", "value": 5 },
-              { "color": "red", "value": 20 }
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 5
+              },
+              {
+                "color": "red",
+                "value": 20
+              }
             ]
           }
         }
       },
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 8
+      },
       "id": 3,
       "title": "4XX Errors",
       "type": "timeseries",
       "targets": [
         {
-          "datasource": { "type": "cloudwatch", "uid": "cloudwatch-main" },
-          "dimensions": { "ApiName": ["$api_name"] },
+          "datasource": {
+            "type": "cloudwatch",
+            "uid": "cloudwatch-main"
+          },
+          "dimensions": {
+            "ApiName": "${api_name}"
+          },
           "metricName": "4XXError",
           "namespace": "AWS/ApiGateway",
           "period": "300",
           "queryMode": "Metrics",
           "refId": "A",
           "region": "default",
-          "statistic": "Sum"
+          "statistic": "Sum",
+          "matchExact": true,
+          "metricQueryType": 0,
+          "metricEditorMode": 0,
+          "id": "",
+          "expression": "",
+          "alias": ""
         }
       ]
     },
     {
-      "datasource": { "type": "cloudwatch", "uid": "cloudwatch-main" },
+      "datasource": {
+        "type": "cloudwatch",
+        "uid": "cloudwatch-main"
+      },
       "fieldConfig": {
         "defaults": {
-          "color": { "mode": "palette-classic" },
-          "custom": { "fillOpacity": 10, "lineWidth": 2 },
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "fillOpacity": 10,
+            "lineWidth": 2,
+            "spanNulls": true,
+            "showPoints": "always",
+            "pointSize": 5
+          },
           "unit": "short",
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "green", "value": null },
-              { "color": "red", "value": 1 }
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
             ]
           }
         }
       },
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 8
+      },
       "id": 4,
       "title": "5XX Errors",
       "type": "timeseries",
       "targets": [
         {
-          "datasource": { "type": "cloudwatch", "uid": "cloudwatch-main" },
-          "dimensions": { "ApiName": ["$api_name"] },
+          "datasource": {
+            "type": "cloudwatch",
+            "uid": "cloudwatch-main"
+          },
+          "dimensions": {
+            "ApiName": "${api_name}"
+          },
           "metricName": "5XXError",
           "namespace": "AWS/ApiGateway",
           "period": "300",
           "queryMode": "Metrics",
           "refId": "A",
           "region": "default",
-          "statistic": "Sum"
+          "statistic": "Sum",
+          "matchExact": true,
+          "metricQueryType": 0,
+          "metricEditorMode": 0,
+          "id": "",
+          "expression": "",
+          "alias": ""
         }
       ]
     },
     {
-      "datasource": { "type": "cloudwatch", "uid": "cloudwatch-main" },
+      "datasource": {
+        "type": "cloudwatch",
+        "uid": "cloudwatch-main"
+      },
       "fieldConfig": {
         "defaults": {
-          "color": { "mode": "palette-classic" },
-          "custom": { "fillOpacity": 10, "lineWidth": 2 },
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "fillOpacity": 10,
+            "lineWidth": 2,
+            "spanNulls": true,
+            "showPoints": "always",
+            "pointSize": 5
+          },
           "unit": "ms"
         }
       },
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 16 },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 16
+      },
       "id": 5,
       "title": "Integration Latency",
       "type": "timeseries",
       "targets": [
         {
-          "datasource": { "type": "cloudwatch", "uid": "cloudwatch-main" },
-          "dimensions": { "ApiName": ["$api_name"] },
+          "datasource": {
+            "type": "cloudwatch",
+            "uid": "cloudwatch-main"
+          },
+          "dimensions": {
+            "ApiName": "${api_name}"
+          },
           "metricName": "IntegrationLatency",
           "namespace": "AWS/ApiGateway",
           "period": "300",
           "queryMode": "Metrics",
           "refId": "A",
           "region": "default",
-          "statistic": "Average"
+          "statistic": "Average",
+          "matchExact": true,
+          "metricQueryType": 0,
+          "metricEditorMode": 0,
+          "id": "",
+          "expression": "",
+          "alias": ""
         }
       ]
     }
   ],
   "schemaVersion": 39,
-  "tags": ["aws", "apigateway", "observati"],
+  "tags": [
+    "aws",
+    "apigateway",
+    "observati"
+  ],
   "templating": {
     "list": [
       {
         "current": {},
-        "datasource": { "type": "cloudwatch", "uid": "cloudwatch-main" },
+        "datasource": {
+          "type": "cloudwatch",
+          "uid": "cloudwatch-main"
+        },
         "hide": 0,
-        "includeAll": true,
-        "multi": true,
+        "includeAll": false,
+        "multi": false,
         "name": "api_name",
-        "query": { "dimensionKey": "ApiName", "metricName": "Count", "namespace": "AWS/ApiGateway", "queryType": "dimensionValues", "region": "default" },
-        "refresh": 1,
+        "query": {
+          "dimensionKey": "ApiName",
+          "metricName": "Count",
+          "namespace": "AWS/ApiGateway",
+          "queryType": "dimensionValues",
+          "region": "default"
+        },
+        "refresh": 2,
         "sort": 1,
         "type": "query"
       }
     ]
   },
-  "time": { "from": "now-3h", "to": "now" },
+  "time": {
+    "from": "now-24h",
+    "to": "now"
+  },
   "timezone": "browser",
   "title": "API Gateway Overview",
   "uid": "observati-apigateway",

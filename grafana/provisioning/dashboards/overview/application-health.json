@@ -2,23 +2,28 @@
   "annotations": {
     "list": []
   },
-  "description": "Vista general del estado de todas las aplicaciones monitoreadas",
+  "description": "Vista general del estado de la infraestructura AWS. Usa Metric Math SEARCH() + SORT() para descubrir y rankear recursos sin seleccionarlos a mano.",
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
   "id": null,
   "links": [],
+  "refresh": "5m",
   "panels": [
     {
-      "datasource": {
-        "type": "datasource",
-        "uid": "-- Dashboard --"
+      "gridPos": {
+        "h": 2,
+        "w": 24,
+        "x": 0,
+        "y": 0
       },
-      "gridPos": { "h": 3, "w": 24, "x": 0, "y": 0 },
-      "id": 1,
+      "id": 100,
       "options": {
-        "code": { "language": "plaintext", "showLineNumbers": false },
-        "content": "# ObservaTI - Estado de Aplicaciones\n\nEsta vista muestra el estado general de las aplicaciones monitoreadas. Los dashboards de AWS Infrastructure muestran métricas detalladas de CloudWatch.",
+        "code": {
+          "language": "plaintext",
+          "showLineNumbers": false
+        },
+        "content": "## Estado general\nSem\u00e1foros de toda la flota. Verde = sin problemas en el rango seleccionado.",
         "mode": "markdown"
       },
       "title": "",
@@ -30,52 +35,161 @@
         "type": "cloudwatch",
         "uid": "cloudwatch-main"
       },
-      "description": "Instancias EC2 con status check fallido",
+      "description": "CPU de la instancia EC2 mas cargada de toda la flota.",
       "fieldConfig": {
         "defaults": {
-          "color": { "mode": "thresholds" },
+          "color": {
+            "mode": "thresholds"
+          },
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "decimals": 1,
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "green", "value": null },
-              { "color": "red", "value": 1 }
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 70
+              },
+              {
+                "color": "red",
+                "value": 90
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 5,
+        "x": 0,
+        "y": 2
+      },
+      "id": 1,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "max"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "title": "EC2 - Peor CPU",
+      "type": "stat",
+      "targets": [
+        {
+          "datasource": {
+            "type": "cloudwatch",
+            "uid": "cloudwatch-main"
+          },
+          "refId": "A",
+          "region": "default",
+          "queryMode": "Metrics",
+          "metricQueryType": 0,
+          "metricEditorMode": 1,
+          "namespace": "",
+          "metricName": "",
+          "statistic": "Average",
+          "period": "300",
+          "id": "e1",
+          "expression": "MAX(SEARCH('{AWS/EC2,InstanceId} MetricName=\"CPUUtilization\"', 'Average', 300))",
+          "label": "Peor CPU"
+        }
+      ]
+    },
+    {
+      "datasource": {
+        "type": "cloudwatch",
+        "uid": "cloudwatch-main"
+      },
+      "description": "Cantidad de instancias EC2 con status check fallido. 0 = toda la flota sana.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "unit": "short",
+          "decimals": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
             ]
           },
           "mappings": [
-            { "options": { "0": { "text": "OK" } }, "type": "value" },
-            { "options": { "from": 1, "to": 999, "result": { "text": "FAILED" } }, "type": "range" }
+            {
+              "type": "value",
+              "options": {
+                "0": {
+                  "text": "OK",
+                  "index": 0
+                }
+              }
+            }
           ]
-        }
+        },
+        "overrides": []
       },
-      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 3 },
+      "gridPos": {
+        "h": 5,
+        "w": 5,
+        "x": 5,
+        "y": 2
+      },
       "id": 2,
       "options": {
         "colorMode": "background",
         "graphMode": "none",
         "justifyMode": "center",
         "orientation": "auto",
-        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "reduceOptions": {
+          "calcs": [
+            "max"
+          ],
+          "fields": "",
+          "values": false
+        },
         "textMode": "auto"
       },
-      "title": "EC2 Status Check Failed",
+      "title": "EC2 - Status checks fallidos",
       "type": "stat",
       "targets": [
         {
-          "alias": "",
-          "datasource": { "type": "cloudwatch", "uid": "cloudwatch-main" },
-          "dimensions": {},
-          "expression": "",
-          "id": "",
-          "matchExact": true,
-          "metricEditorMode": 0,
-          "metricName": "StatusCheckFailed",
-          "metricQueryType": 0,
-          "namespace": "AWS/EC2",
-          "period": "300",
-          "queryMode": "Metrics",
+          "datasource": {
+            "type": "cloudwatch",
+            "uid": "cloudwatch-main"
+          },
           "refId": "A",
           "region": "default",
-          "statistic": "Maximum"
+          "queryMode": "Metrics",
+          "metricQueryType": 0,
+          "metricEditorMode": 1,
+          "namespace": "",
+          "metricName": "",
+          "statistic": "Maximum",
+          "period": "300",
+          "id": "e1",
+          "expression": "SUM(SEARCH('{AWS/EC2,InstanceId} MetricName=\"StatusCheckFailed\"', 'Maximum', 300))",
+          "label": "Fallidos"
         }
       ]
     },
@@ -84,43 +198,75 @@
         "type": "cloudwatch",
         "uid": "cloudwatch-main"
       },
-      "description": "Errores en funciones Lambda (últimos 5 min)",
+      "description": "Errores acumulados de todas las funciones Lambda en el rango seleccionado.",
       "fieldConfig": {
         "defaults": {
-          "color": { "mode": "thresholds" },
+          "color": {
+            "mode": "thresholds"
+          },
+          "unit": "short",
+          "decimals": 0,
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "green", "value": null },
-              { "color": "yellow", "value": 1 },
-              { "color": "red", "value": 5 }
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 25
+              }
             ]
           }
-        }
+        },
+        "overrides": []
       },
-      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 3 },
+      "gridPos": {
+        "h": 5,
+        "w": 5,
+        "x": 10,
+        "y": 2
+      },
       "id": 3,
       "options": {
         "colorMode": "background",
         "graphMode": "area",
         "justifyMode": "center",
         "orientation": "auto",
-        "reduceOptions": { "calcs": ["sum"], "fields": "", "values": false },
+        "reduceOptions": {
+          "calcs": [
+            "sum"
+          ],
+          "fields": "",
+          "values": false
+        },
         "textMode": "auto"
       },
-      "title": "Lambda Errors",
+      "title": "Lambda - Errores (total)",
       "type": "stat",
       "targets": [
         {
-          "datasource": { "type": "cloudwatch", "uid": "cloudwatch-main" },
-          "dimensions": {},
-          "metricName": "Errors",
-          "namespace": "AWS/Lambda",
-          "period": "300",
-          "queryMode": "Metrics",
+          "datasource": {
+            "type": "cloudwatch",
+            "uid": "cloudwatch-main"
+          },
           "refId": "A",
           "region": "default",
-          "statistic": "Sum"
+          "queryMode": "Metrics",
+          "metricQueryType": 0,
+          "metricEditorMode": 1,
+          "namespace": "",
+          "metricName": "",
+          "statistic": "Sum",
+          "period": "300",
+          "id": "e1",
+          "expression": "SUM(SEARCH('{AWS/Lambda,FunctionName} MetricName=\"Errors\"', 'Sum', 300))",
+          "label": "Errores"
         }
       ]
     },
@@ -129,43 +275,76 @@
         "type": "cloudwatch",
         "uid": "cloudwatch-main"
       },
-      "description": "Errores 5XX en API Gateway (últimos 5 min)",
+      "description": "Errores 5XX acumulados de todas las APIs. Sin trafico no hay datapoints.",
       "fieldConfig": {
         "defaults": {
-          "color": { "mode": "thresholds" },
+          "color": {
+            "mode": "thresholds"
+          },
+          "unit": "short",
+          "decimals": 0,
+          "noValue": "0",
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "green", "value": null },
-              { "color": "yellow", "value": 1 },
-              { "color": "red", "value": 10 }
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 10
+              }
             ]
           }
-        }
+        },
+        "overrides": []
       },
-      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 3 },
+      "gridPos": {
+        "h": 5,
+        "w": 5,
+        "x": 15,
+        "y": 2
+      },
       "id": 4,
       "options": {
         "colorMode": "background",
         "graphMode": "area",
         "justifyMode": "center",
         "orientation": "auto",
-        "reduceOptions": { "calcs": ["sum"], "fields": "", "values": false },
+        "reduceOptions": {
+          "calcs": [
+            "sum"
+          ],
+          "fields": "",
+          "values": false
+        },
         "textMode": "auto"
       },
-      "title": "API Gateway 5XX",
+      "title": "API Gateway - Errores 5XX",
       "type": "stat",
       "targets": [
         {
-          "datasource": { "type": "cloudwatch", "uid": "cloudwatch-main" },
-          "dimensions": {},
-          "metricName": "5XXError",
-          "namespace": "AWS/ApiGateway",
-          "period": "300",
-          "queryMode": "Metrics",
+          "datasource": {
+            "type": "cloudwatch",
+            "uid": "cloudwatch-main"
+          },
           "refId": "A",
           "region": "default",
-          "statistic": "Sum"
+          "queryMode": "Metrics",
+          "metricQueryType": 0,
+          "metricEditorMode": 1,
+          "namespace": "",
+          "metricName": "",
+          "statistic": "Sum",
+          "period": "300",
+          "id": "e1",
+          "expression": "SUM(SEARCH('{AWS/ApiGateway,ApiName} MetricName=\"5XXError\"', 'Sum', 300))",
+          "label": "5XX"
         }
       ]
     },
@@ -174,54 +353,893 @@
         "type": "cloudwatch",
         "uid": "cloudwatch-main"
       },
-      "description": "Conexiones activas a RDS",
+      "description": "CPU de la instancia RDS mas cargada.",
       "fieldConfig": {
         "defaults": {
-          "color": { "mode": "thresholds" },
+          "color": {
+            "mode": "thresholds"
+          },
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "decimals": 1,
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "green", "value": null },
-              { "color": "yellow", "value": 80 },
-              { "color": "red", "value": 150 }
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 70
+              },
+              {
+                "color": "red",
+                "value": 90
+              }
             ]
           }
-        }
+        },
+        "overrides": []
       },
-      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 3 },
+      "gridPos": {
+        "h": 5,
+        "w": 4,
+        "x": 20,
+        "y": 2
+      },
       "id": 5,
       "options": {
         "colorMode": "background",
         "graphMode": "area",
         "justifyMode": "center",
         "orientation": "auto",
-        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "reduceOptions": {
+          "calcs": [
+            "max"
+          ],
+          "fields": "",
+          "values": false
+        },
         "textMode": "auto"
       },
-      "title": "RDS Connections",
+      "title": "RDS - Peor CPU",
       "type": "stat",
       "targets": [
         {
-          "datasource": { "type": "cloudwatch", "uid": "cloudwatch-main" },
-          "dimensions": {},
-          "metricName": "DatabaseConnections",
-          "namespace": "AWS/RDS",
-          "period": "300",
-          "queryMode": "Metrics",
+          "datasource": {
+            "type": "cloudwatch",
+            "uid": "cloudwatch-main"
+          },
           "refId": "A",
           "region": "default",
-          "statistic": "Average"
+          "queryMode": "Metrics",
+          "metricQueryType": 0,
+          "metricEditorMode": 1,
+          "namespace": "",
+          "metricName": "",
+          "statistic": "Average",
+          "period": "300",
+          "id": "e1",
+          "expression": "MAX(SEARCH('{AWS/RDS,DBInstanceIdentifier} MetricName=\"CPUUtilization\"', 'Average', 300))",
+          "label": "Peor CPU"
+        }
+      ]
+    },
+    {
+      "gridPos": {
+        "h": 2,
+        "w": 24,
+        "x": 0,
+        "y": 7
+      },
+      "id": 101,
+      "options": {
+        "code": {
+          "language": "plaintext",
+          "showLineNumbers": false
+        },
+        "content": "## Peores recursos\nRanking de los 5 recursos con mayor consumo o mas errores en el rango seleccionado.",
+        "mode": "markdown"
+      },
+      "title": "",
+      "transparent": true,
+      "type": "text"
+    },
+    {
+      "datasource": {
+        "type": "cloudwatch",
+        "uid": "cloudwatch-main"
+      },
+      "description": "Top 5 instancias EC2 por CPU (pico en el rango). ec2-name-mapping: los nombres provienen del tag Name, sincronizados con 'make sync-ec2-names'.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "decimals": 1,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 70
+              },
+              {
+                "color": "red",
+                "value": 90
+              }
+            ]
+          },
+          "mappings": []
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "i-05624d35556ed6146"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "fp.vpc.ec2.prod-facil-paga-pxy"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "i-08f3215fa0e67e986"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "nd.vpc.ec2.dev.circulacion-new"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "i-01f87af11fc3f05f6"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "nd.vpc.ec2.dev.colaboradoresv2"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "i-0509327e7cb0a3a89"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "nd.vpc.ec2.dev.intranet-test"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "i-07ae6f9de8caf09fe"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "nd.vpc.ec2.dev.intranet-ti"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "i-0b5840bcc4ed85d60"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "nd.vpc.ec2.dev.marketplace"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "i-07b0b48935f2c9a20"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "nd.vpc.ec2.dev.redapp"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "i-016faee39fecfabd1"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "nd.vpc.ec2.dev.redapp.new"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "i-0b6b13328f2ad92c3"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "nd.vpc.ec2.dev.ventaSoy502"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "i-030b18ceefd523af3"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "nd.vpc.ec2.dev.ventas"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "i-08308d770f7bf8df8"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "nd.vpc.ec2.dev.ws.gt.SitioCorporativo"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "i-0549cff7aa0413666"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "nd.vpc.ec2.developer.redapp.new"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "i-0ebbef259e586dbc0"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "nd.vpc.ec2.prod.appventas"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "i-0367568c1471a5419"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "nd.vpc.ec2.prod.automata"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "i-0d3cb04f0d7e6c045"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "nd.vpc.ec2.prod.circulacion-new"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "i-0da181c7ed0a23662"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "nd.vpc.ec2.prod.circv2"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "i-0a3730bf32e3a2ab7"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "nd.vpc.ec2.prod.clasificados_monitoreo"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "i-0093bb0a9c6b414f3"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "nd.vpc.ec2.prod.colab"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "i-000650b23265dc56c"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "nd.vpc.ec2.prod.colab_v2"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "i-01b39d588a47cea6b"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "nd.vpc.ec2.prod.dashboard"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "i-0a6321499b29a0a80"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "nd.vpc.ec2.prod.iand"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "i-0767d9a95602674f0"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "nd.vpc.ec2.prod.intranet"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "i-09e7e90bdbc6a3b26"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "nd.vpc.ec2.prod.itop-new"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "i-058ef1ba6046da41e"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "nd.vpc.ec2.prod.load-ner"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "i-014467e4bd8683d40"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "nd.vpc.ec2.prod.load5"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "i-08c374076ec05c504"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "nd.vpc.ec2.prod.moodle_New"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "i-0e6454ea881290857"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "nd.vpc.ec2.prod.observati.iac-server"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "i-0eb57a67f3d9336fc"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "nd.vpc.ec2.prod.rdc.circulacion"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "i-029ad4e4bfd089011"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "nd.vpc.ec2.prod.redapp"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "i-0d831a37f90473722"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "nd.vpc.ec2.prod.riana"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "i-05071095bb319b1ca"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "nd.vpc.ec2.prod.suitecrm"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "i-0598c564cabd249d7"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "nd.vpc.ec2.prod.suitecrm.soy502"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "i-031896f46aeecd8d0"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "nd.vpc.ec2.prod.webapp"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "i-033884e5fa8299cde"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "nd.vpc.ec2.prod.webappV2"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "i-074b15d11038c094f"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "nd.vpc.ec2.prod.ws.gt"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "i-06d6219253a629ac8"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "nd.vpc.ec2.prod.ws.gt.SitioCorporativo"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "i-0da1971a87552185b"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "ndp.vpc.ec2.prod.push"
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 9
+      },
+      "id": 10,
+      "options": {
+        "displayMode": "gradient",
+        "maxVizHeight": 300,
+        "minVizHeight": 16,
+        "minVizWidth": 8,
+        "namePlacement": "top",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "max"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showUnfilled": true,
+        "sizing": "auto",
+        "valueMode": "color"
+      },
+      "title": "Top 5 EC2 por CPU",
+      "type": "bargauge",
+      "targets": [
+        {
+          "datasource": {
+            "type": "cloudwatch",
+            "uid": "cloudwatch-main"
+          },
+          "refId": "A",
+          "region": "default",
+          "queryMode": "Metrics",
+          "metricQueryType": 0,
+          "metricEditorMode": 1,
+          "namespace": "",
+          "metricName": "",
+          "statistic": "Average",
+          "period": "300",
+          "id": "e1",
+          "expression": "SORT(SEARCH('{AWS/EC2,InstanceId} MetricName=\"CPUUtilization\"', 'Average', 300), MAX, DESC, 5)",
+          "label": "${PROP('Dim.InstanceId')}"
+        }
+      ]
+    },
+    {
+      "datasource": {
+        "type": "cloudwatch",
+        "uid": "cloudwatch-main"
+      },
+      "description": "Top 5 instancias RDS por CPU (pico en el rango).",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "decimals": 1,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 70
+              },
+              {
+                "color": "red",
+                "value": 90
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 9
+      },
+      "id": 11,
+      "options": {
+        "displayMode": "gradient",
+        "maxVizHeight": 300,
+        "minVizHeight": 16,
+        "minVizWidth": 8,
+        "namePlacement": "top",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "max"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showUnfilled": true,
+        "sizing": "auto",
+        "valueMode": "color"
+      },
+      "title": "Top 5 RDS por CPU",
+      "type": "bargauge",
+      "targets": [
+        {
+          "datasource": {
+            "type": "cloudwatch",
+            "uid": "cloudwatch-main"
+          },
+          "refId": "A",
+          "region": "default",
+          "queryMode": "Metrics",
+          "metricQueryType": 0,
+          "metricEditorMode": 1,
+          "namespace": "",
+          "metricName": "",
+          "statistic": "Average",
+          "period": "300",
+          "id": "e1",
+          "expression": "SORT(SEARCH('{AWS/RDS,DBInstanceIdentifier} MetricName=\"CPUUtilization\"', 'Average', 300), MAX, DESC, 5)",
+          "label": "${PROP('Dim.DBInstanceIdentifier')}"
+        }
+      ]
+    },
+    {
+      "datasource": {
+        "type": "cloudwatch",
+        "uid": "cloudwatch-main"
+      },
+      "description": "Top 5 funciones Lambda por errores acumulados en el rango.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "unit": "short",
+          "decimals": 0,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 25
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 18
+      },
+      "id": 12,
+      "options": {
+        "displayMode": "gradient",
+        "maxVizHeight": 300,
+        "minVizHeight": 16,
+        "minVizWidth": 8,
+        "namePlacement": "top",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "sum"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showUnfilled": true,
+        "sizing": "auto",
+        "valueMode": "color"
+      },
+      "title": "Top 5 Lambda por errores",
+      "type": "bargauge",
+      "targets": [
+        {
+          "datasource": {
+            "type": "cloudwatch",
+            "uid": "cloudwatch-main"
+          },
+          "refId": "A",
+          "region": "default",
+          "queryMode": "Metrics",
+          "metricQueryType": 0,
+          "metricEditorMode": 1,
+          "namespace": "",
+          "metricName": "",
+          "statistic": "Sum",
+          "period": "300",
+          "id": "e1",
+          "expression": "SORT(SEARCH('{AWS/Lambda,FunctionName} MetricName=\"Errors\"', 'Sum', 300), SUM, DESC, 5)",
+          "label": "${PROP('Dim.FunctionName')}"
+        }
+      ]
+    },
+    {
+      "datasource": {
+        "type": "cloudwatch",
+        "uid": "cloudwatch-main"
+      },
+      "description": "Top 5 APIs por errores 5XX acumulados. Todo en cero significa que ninguna API esta fallando.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "unit": "short",
+          "decimals": 0,
+          "min": 0,
+          "noValue": "Sin errores 5XX",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 10
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 18
+      },
+      "id": 13,
+      "options": {
+        "displayMode": "gradient",
+        "maxVizHeight": 300,
+        "minVizHeight": 16,
+        "minVizWidth": 8,
+        "namePlacement": "top",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "sum"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showUnfilled": true,
+        "sizing": "auto",
+        "valueMode": "color"
+      },
+      "title": "Top 5 API Gateway por errores 5XX",
+      "type": "bargauge",
+      "targets": [
+        {
+          "datasource": {
+            "type": "cloudwatch",
+            "uid": "cloudwatch-main"
+          },
+          "refId": "A",
+          "region": "default",
+          "queryMode": "Metrics",
+          "metricQueryType": 0,
+          "metricEditorMode": 1,
+          "namespace": "",
+          "metricName": "",
+          "statistic": "Sum",
+          "period": "300",
+          "id": "e1",
+          "expression": "SORT(SEARCH('{AWS/ApiGateway,ApiName} MetricName=\"5XXError\"', 'Sum', 300), SUM, DESC, 5)",
+          "label": "${PROP('Dim.ApiName')}"
         }
       ]
     }
   ],
   "schemaVersion": 39,
-  "tags": ["overview", "observati"],
-  "templating": { "list": [] },
-  "time": { "from": "now-3h", "to": "now" },
+  "tags": [
+    "overview",
+    "observati"
+  ],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-3h",
+    "to": "now"
+  },
   "timepicker": {},
   "timezone": "browser",
   "title": "Application Health",
   "uid": "observati-app-health",
-  "version": 1
+  "version": 4
 }
