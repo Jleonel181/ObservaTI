@@ -37,17 +37,6 @@ monitors:
       - name: redapp
         color: "#0d6efd"
 
-  # --- WebApp ---
-  - name: "WebApp - Producción"
-    type: http
-    url: "https://www.nuestrodiario.com"
-    interval: 60
-    tags:
-      - name: produccion
-        color: "#dc3545"
-      - name: webapp
-        color: "#198754"
-
   - name: "WebApp - Test"
     type: http
     url: "https://dev.noticias.nuestrodiario.com.gt/"
@@ -79,3 +68,46 @@ monitors:
         color: "#dc3545"
       - name: intranet
         color: "#fd7e14"
+
+  # --- Aplicaciones internas (solo alcanzables desde la red local) ---
+  # Nota: estas URLs solo responden desde la red del edificio.
+  # El Uptime Kuma que las monitoree debe correr en esa misma red.
+  - name: "CXC Soy502"
+    type: http
+    url: "http://192.168.11.48/soy502/CXC/login.php"
+    interval: 60
+    tags:
+      - name: interna
+        color: "#0dcaf0"
+      - name: cxc
+        color: "#6610f2"
+
+  - name: "CXC ND"
+    type: http
+    url: "http://192.168.11.48/ventas/CXC/login.php"
+    interval: 60
+    tags:
+      - name: interna
+        color: "#0dcaf0"
+      - name: cxc
+        color: "#6610f2"
+
+  - name: "Ventas Soy502"
+    type: http
+    url: "http://ventas.soy502.net/login.php"
+    interval: 60
+    tags:
+      - name: interna
+        color: "#0dcaf0"
+      - name: ventas
+        color: "#d63384"
+
+  - name: "Ventas ND"
+    type: http
+    url: "http://trafico.nuestrodiario.net/login.php"
+    interval: 60
+    tags:
+      - name: interna
+        color: "#0dcaf0"
+      - name: ventas
+        color: "#d63384"

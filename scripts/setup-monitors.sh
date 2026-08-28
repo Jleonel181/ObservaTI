@@ -120,6 +120,46 @@ for mid, mon in monitor_list.items():
     existing_names.add(mon.get("name", ""))
     existing_ids.append(int(mid))
 
+
+# ---- Gestion de tags ----
+# Uptime Kuma maneja tags en dos pasos: crear el tag global y luego
+# asociarlo a cada monitor. Aqui garantizamos que cada tag del YAML
+# exista y guardamos su id para reutilizarlo.
+def emit_sync(event, data=None, timeout=5):
+    box = {}
+    def cb(*a):
+        box["r"] = a
+    if data is None:
+        sio.emit(event, callback=cb)
+    else:
+        sio.emit(event, data, callback=cb)
+    waited = 0.0
+    while "r" not in box and waited < timeout:
+        time.sleep(0.1)
+        waited += 0.1
+    return box.get("r")
+
+
+# Cargar tags ya existentes en Kuma: {nombre: id}
+tag_ids = {}
+resp = emit_sync("getTags")
+if resp and isinstance(resp[0], dict) and resp[0].get("ok"):
+    for t in resp[0].get("tags", []):
+        tag_ids[t["name"]] = t["id"]
+
+
+def ensure_tag(name, color):
+    """Devuelve el id del tag, creandolo si no existe."""
+    if name in tag_ids:
+        return tag_ids[name]
+    resp = emit_sync("addTag", {"name": name, "color": color})
+    if resp and isinstance(resp[0], dict) and resp[0].get("ok"):
+        tid = resp[0]["tag"]["id"]
+        tag_ids[name] = tid
+        print(f"  + Tag creado: {name}")
+        return tid
+    return None
+
 # Si RESET, eliminar todos los monitores existentes
 if os.environ.get("RESET_MONITORS") == "1" and existing_ids:
     print(f"Eliminando {len(existing_ids)} monitores existentes...")
@@ -184,6 +224,16 @@ for monitor in MONITORS:
         monitor_id = result.get("monitorID", "?")
         print(f"  ✓ Creado: {name} (ID: {monitor_id})")
         created += 1
+
+        # Asociar tags al monitor recien creado
+        for tag in monitor.get("tags", []):
+            tname = tag.get("name")
+            tcolor = tag.get("color", "#4b5563")
+            if not tname:
+                continue
+            tid = ensure_tag(tname, tcolor)
+            if tid is not None:
+                emit_sync("addMonitorTag", (tid, monitor_id, ""))
     else:
         msg = result.get("msg", "error desconocido")
         print(f"  ✗ Error: {name} - {msg}")
