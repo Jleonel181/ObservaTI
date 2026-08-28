@@ -23,7 +23,7 @@
           "language": "plaintext",
           "showLineNumbers": false
         },
-        "content": "## Estado general\nSem\u00e1foros de toda la flota. Verde = sin problemas en el rango seleccionado.",
+        "content": "## Estado general - Sem\u00e1foros de AWS",
         "mode": "markdown"
       },
       "title": "",
@@ -440,7 +440,7 @@
           "language": "plaintext",
           "showLineNumbers": false
         },
-        "content": "## Peores recursos\nRanking de los 5 recursos con mayor consumo o mas errores en el rango seleccionado.",
+        "content": "## Peores recursos",
         "mode": "markdown"
       },
       "title": "",

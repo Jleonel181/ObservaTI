@@ -14,6 +14,16 @@ defaults:
   headers:               # headers por defecto para todos los monitores HTTP
     User-Agent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
 
+# Notificaciones (se crean/actualizan y se aplican a todos los monitores).
+# El webhook de Discord se lee de la variable de entorno DISCORD_WEBHOOK_URL,
+# nunca se escribe aquí.
+notifications:
+  - name: "Discord ObservaTI"
+    type: discord
+    isDefault: true
+    discordUsername: "ObservaTI"
+    # discordWebhookUrl se inyecta desde DISCORD_WEBHOOK_URL
+
 # Aplicaciones a monitorear
 monitors:
   # --- RedApp ---
@@ -77,8 +87,8 @@ monitors:
     url: "http://192.168.11.48/soy502/CXC/login.php"
     interval: 60
     tags:
-      - name: interna
-        color: "#0dcaf0"
+      - name: produccion
+        color: "#dc3545"
       - name: cxc
         color: "#6610f2"
 
@@ -87,8 +97,8 @@ monitors:
     url: "http://192.168.11.48/ventas/CXC/login.php"
     interval: 60
     tags:
-      - name: interna
-        color: "#0dcaf0"
+      - name: produccion
+        color: "#dc3545"
       - name: cxc
         color: "#6610f2"
 
@@ -97,8 +107,8 @@ monitors:
     url: "http://ventas.soy502.net/login.php"
     interval: 60
     tags:
-      - name: interna
-        color: "#0dcaf0"
+      - name: produccion
+        color: "#dc3545"
       - name: ventas
         color: "#d63384"
 
@@ -107,7 +117,7 @@ monitors:
     url: "http://trafico.nuestrodiario.net/login.php"
     interval: 60
     tags:
-      - name: interna
-        color: "#0dcaf0"
+      - name: produccion
+        color: "#dc3545"
       - name: ventas
         color: "#d63384"

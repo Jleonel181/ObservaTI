@@ -41,6 +41,14 @@ if ! docker compose ps uptime-kuma 2>/dev/null | grep -qi "up\|running"; then
   exit 1
 fi
 
+# --- Cargar .env para secretos (ej: DISCORD_WEBHOOK_URL) ---
+if [ -f .env ]; then
+  set -a
+  # shellcheck disable=SC1091
+  . ./.env
+  set +a
+fi
+
 # --- Solicitar credenciales ---
 KUMA_USER="${KUMA_USER:-}"
 KUMA_PASS="${KUMA_PASS:-}"
@@ -56,6 +64,7 @@ fi
 # --- Leer monitores del YAML y convertir a JSON ---
 MONITORS_JSON=$(yq -o=json '.monitors' "$MONITORS_FILE")
 DEFAULTS_JSON=$(yq -o=json '.defaults // {}' "$MONITORS_FILE")
+NOTIFICATIONS_JSON=$(yq -o=json '.notifications // []' "$MONITORS_FILE")
 
 echo ""
 echo -e "${YELLOW}Configurando monitores en Uptime Kuma...${NC}"
@@ -67,6 +76,8 @@ docker run --rm --network observati-network \
   -e KUMA_PASS="$KUMA_PASS" \
   -e MONITORS_JSON="$MONITORS_JSON" \
   -e DEFAULTS_JSON="$DEFAULTS_JSON" \
+  -e NOTIFICATIONS_JSON="$NOTIFICATIONS_JSON" \
+  -e DISCORD_WEBHOOK_URL="${DISCORD_WEBHOOK_URL:-}" \
   -e RESET_MONITORS="${RESET_MONITORS:-0}" \
   python:3.12-slim sh -c '
     pip install -q "python-socketio[client]" "websocket-client" 2>/dev/null
@@ -87,11 +98,18 @@ DEFAULT_HEADERS = DEFAULTS.get("headers", {})
 sio = socketio.Client()
 login_ok = {}
 monitor_list = {}
+notification_list = []
 add_results = []
 
 @sio.on("monitorList")
 def on_monitor_list(data):
     monitor_list.update(data)
+
+@sio.on("notificationList")
+def on_notification_list(data):
+    notification_list.clear()
+    if isinstance(data, list):
+        notification_list.extend(data)
 
 sio.connect(KUMA_URL, transports=["websocket"])
 
@@ -160,6 +178,58 @@ def ensure_tag(name, color):
         return tid
     return None
 
+
+# ---- Gestion de notificaciones ----
+# Se crean/actualizan desde el YAML. Con applyExisting=True se aplican
+# tambien a los monitores ya existentes. El webhook nunca vive en el YAML,
+# se inyecta desde variables de entorno.
+NOTIFICATIONS = json.loads(os.environ.get("NOTIFICATIONS_JSON", "[]"))
+
+# notificationList llega como evento tras el login
+existing_notifs = {}
+for n in (notification_list or []):
+    existing_notifs[n.get("name")] = n.get("id")
+
+# IDs de las notificaciones que se aplicaran a cada monitor nuevo
+active_notif_ids = []
+
+
+def setup_notifications():
+    for notif in NOTIFICATIONS:
+        name = notif.get("name")
+        ntype = notif.get("type")
+        config = {
+            "name": name,
+            "type": ntype,
+            "isDefault": notif.get("isDefault", False),
+            "applyExisting": True,
+        }
+
+        if ntype == "discord":
+            webhook = os.environ.get("DISCORD_WEBHOOK_URL", "")
+            if not webhook:
+                print(f"  ! {name}: DISCORD_WEBHOOK_URL vacio, se omite")
+                continue
+            config["discordUsername"] = notif.get("discordUsername", "ObservaTI")
+            config["discordWebhookUrl"] = webhook
+        else:
+            print(f"  ! {name}: tipo '{ntype}' no soportado por el script aun")
+            continue
+
+        # Actualizar si ya existe (mismo nombre), si no crear
+        notif_id = existing_notifs.get(name)
+        resp = emit_sync("addNotification", (config, notif_id))
+        if resp and isinstance(resp[0], dict) and resp[0].get("ok"):
+            verbo = "actualizada" if notif_id else "creada"
+            # Guardar el id para asociarlo a cada monitor que se cree
+            new_id = resp[0].get("id", notif_id)
+            if new_id is not None:
+                active_notif_ids.append(int(new_id))
+            print(f"  + Notificacion {verbo}: {name}")
+        else:
+            msg = resp[0].get("msg", "error") if resp else "sin respuesta"
+            print(f"  ! Notificacion fallida: {name} - {msg}")
+
 # Si RESET, eliminar todos los monitores existentes
 if os.environ.get("RESET_MONITORS") == "1" and existing_ids:
     print(f"Eliminando {len(existing_ids)} monitores existentes...")
@@ -171,6 +241,11 @@ if os.environ.get("RESET_MONITORS") == "1" and existing_ids:
         time.sleep(0.3)
     existing_names = set()
     print("✓ Monitores eliminados")
+    print()
+
+# Configurar notificaciones (antes de crear monitores para que apliquen)
+if NOTIFICATIONS:
+    setup_notifications()
     print()
 
 # Crear monitores
@@ -201,7 +276,8 @@ for monitor in MONITORS:
         "retryInterval": 30,
         "active": True,
         "accepted_statuscodes": ["200-299"],
-        "notificationIDList": {},
+        # Asociar todas las notificaciones activas a este monitor
+        "notificationIDList": {str(nid): True for nid in active_notif_ids},
     }
 
     # Headers: merge defaults + per-monitor overrides
